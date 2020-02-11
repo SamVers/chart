@@ -171,7 +171,7 @@ export class timeChartClass extends chartClass{
 
         // see if we have to use an offset
         let xMax = this.xRange.max
-        let xZero = this.timeType == "relative" ?  0 : points[0].x
+        let xZero = this.timeType == "relative" ?  points[0].x : 0
 
         // if the last point is not visible, but the previous one is - shift time-range by one point
         if ( (xMax < points[nPoints-1].x - xZero) && (xMax >= points[nPoints-2].x - xZero)) {               
