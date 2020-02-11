@@ -48,10 +48,16 @@ export class timeChartClass extends chartClass{
     }
 
     setTimeRange(minStr, maxStr) {
+        // get a parsing function
         let parse = d3.timeParse(this.timeFormat)
+
+        // get the delta of the current format
         let delta = parse( maxStr ).getTime() - parse( minStr ).getTime()
-        if (this.timeType == "relative")   this.xRange.min = 0
-        else if (this.timeType == "absolute") this.xRange.min = Date.now() 
+
+        // the range is different for relative and absolute time
+        this.xRange.min = this.timeType == "relative" ? 0 : Date.now()
+
+        // also change the max setting
         this.xRange.max = this.xRange.min + delta
     }
 
@@ -163,8 +169,9 @@ export class timeChartClass extends chartClass{
         // we need at least two points
         if (nPoints < 2) return
 
+        // see if we have to use an offset
         let xMax = this.xRange.max
-        let xZero = this.timeType == "relative" ? points[0].x : 0
+        let xZero = this.timeType == "relative" ?  0 : points[0].x
 
         // if the last point is not visible, but the previous one is - shift time-range by one point
         if ( (xMax < points[nPoints-1].x - xZero) && (xMax >= points[nPoints-2].x - xZero)) {               

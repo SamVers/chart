@@ -1,0 +1,25 @@
+{
+  "name": "chart",
+  "version": "1.0.0",
+  "description": "Draw x/y and time/y charts based on d3.js",
+  "main": "chart-lib.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SamVers/chart.git"
+  },
+  "keywords": [
+    "chart"
+  ],
+  "author": "Sam Verstraete",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SamVers/chart/issues"
+  },
+  "files": [
+    "chart-lib.js"
+  ],
+  "homepage": "https://github.com/SamVers/chart#readme"
+}
