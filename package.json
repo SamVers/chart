@@ -1,8 +1,8 @@
 {
-  "name": "chart",
+  "name": "sv-chart",
   "version": "1.0.0",
   "description": "Draw x/y and time/y charts based on d3.js",
-  "main": "chart.js",
+  "browser": "chart.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -19,7 +19,8 @@
     "url": "https://github.com/SamVers/chart/issues"
   },
   "files": [
-    "chart-lib.js"
+    "chart.js"
   ],
-  "homepage": "https://github.com/SamVers/chart#readme"
+  "homepage": "https://github.com/SamVers/chart#readme",
+  "dependencies": {}
 }
