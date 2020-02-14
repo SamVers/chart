@@ -1,8 +1,4 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-var d3 = require('d3');
+import { line, curveLinear, area, event, drag, zoom, select, scaleLinear, axisBottom, axisLeft, timeParse, timeDay, timeYear, timeMonth, timeHour, timeMinute, timeSecond, timeMillisecond, scaleTime, timeFormat } from 'd3';
 
 const xyDrawMethods = {
 
@@ -28,11 +24,11 @@ const xyDrawMethods = {
 
         // create a line generator - returns a path string  - check if the data fits on the graph first     
         
-        let line = d3.line()
+        let line$1 = line()
             .defined( d => {if ((d.x > xMax)||(d.x < xMin)) return false; else return true})
             .x ( d => xScale(d.x))
             .y ( d => yScale(d.y))
-            .curve(d3.curveLinear);
+            .curve(curveLinear);
 
         // add the line to the chart
         chart.append("path")
@@ -42,7 +38,7 @@ const xyDrawMethods = {
             .attr("stroke-linejoin", "round")
             .attr("stroke-linecap", "round")
             .attr("stroke-width", 1.5)
-            .attr("d", line);
+            .attr("d", line$1);
     },
  
     drawArea(points,color) {
@@ -57,12 +53,12 @@ const xyDrawMethods = {
         let chart = this.svg.append("g").attr("transform", `translate( ${margin.left}, ${margin.top})`);
 
         // create an area generator
-        let area = d3.area()
+        let area$1 = area()
             .defined( d => {if ((d.x > xMax)||(d.x < xMin)) return false; else return true})
             .x(  d => xScale(d.x) )
             .y0( d => yScale(0))
             .y1( d => yScale(d.y))
-            .curve(d3.curveLinear);
+            .curve(curveLinear);
 
         // add the line to the chart
         chart.append("path")
@@ -72,7 +68,7 @@ const xyDrawMethods = {
             .attr("stroke-linejoin", "round")
             .attr("stroke-linecap", "round")
             .attr("stroke-width", 1.5)
-            .attr("d", area);           
+            .attr("d", area$1);           
     },
 
     // in low x-resolution discrete functions are drawn with little circles
@@ -149,7 +145,7 @@ const xyZoomMethods = {
     zoomXAxis( ) {
 
         // the source event
-        let e = d3.event.sourceEvent;
+        let e = event.sourceEvent;
 
         // check the event type
         if (e.type == "wheel") this.scaleXAxis(e, this.xRange );
@@ -187,7 +183,7 @@ const xyZoomMethods = {
     zoomYAxis( ) {
 
         // the source event
-        let e = d3.event.sourceEvent;
+        let e = event.sourceEvent;
 
         // check the event type
         if (e.type == "wheel") this.scaleYAxis(e, this.yRange );
@@ -202,7 +198,7 @@ const xyZoomMethods = {
     zoomYAxisInAxis( ) {
 
         // the source event
-        let e = d3.event.sourceEvent;
+        let e = event.sourceEvent;
 
         // check the event type
         if (e.type == "wheel") this.scaleYAxisAroundCursor(e, this.yRange );
@@ -250,7 +246,7 @@ const xyZoomMethods = {
 
     zoomXY() {
         // the source event
-        let e = d3.event.sourceEvent;
+        let e = event.sourceEvent;
 
         // check the event type
         if (e.type == "wheel") this.scaleYAxis(e, this.yRange );
@@ -279,11 +275,11 @@ const xySelectMethods = {
 
         this.chartArea.svg
         .attr("style","cursor:crosshair")
-        .call(d3.drag()
+        .call(drag()
             .on("start", (d)=>this.startSelectBox(d))
             .on("drag",  (d)=>this.growSelectBox(d))
             .on("end",   (d)=>this.stopSelectBox(d)))
-        .call(d3.zoom().on("zoom", () => this.zoomYAxis()));
+        .call(zoom().on("zoom", () => this.zoomYAxis()));
 
         // prepare the slection rectangle - size 0
         this.chartArea.selectBox = this.chartArea.svg.append("rect")           
@@ -297,8 +293,8 @@ const xySelectMethods = {
     startSelectBox(d) {
         // postition the select box under the cursor
         this.chartArea.selectBox
-            .attr("x", d3.event.x)
-            .attr("y", d3.event.y)
+            .attr("x", event.x)
+            .attr("y", event.y)
             .attr("width",0)
             .attr("height",0)
             .attr("visibility","visible")   
@@ -306,10 +302,10 @@ const xySelectMethods = {
     },
     
     growSelectBox(d) {
-        let x = +d3.event.subject.x; 
-        let y = +d3.event.subject.y; 
-        let w = +d3.event.x - x; 
-        let h = +d3.event.y - y;
+        let x = +event.subject.x; 
+        let y = +event.subject.y; 
+        let w = +event.x - x; 
+        let h = +event.y - y;
 
         // The box can grow in four directions - but svg bx is defined by left upper corner !
         if (w > 0) {
@@ -330,7 +326,7 @@ const xySelectMethods = {
 
         // set the drag callbacks for the selectbox
         this.chartArea.selectBox
-            .call(d3.drag()
+            .call(drag()
             .on("start", (d)=>this.grabSelectBox(d))
             .on("drag", (d)=>this.moveSelectBox(d))
             .on("end", (d)=>this.releaseSelectBox(d)));       
@@ -371,13 +367,13 @@ const xySelectMethods = {
     moveSelectBox(d) {
 
         // we only move in the y-direction
-        let pixelMove = d3.event.y - d3.event.subject.y;
+        let pixelMove = event.y - event.subject.y;
 
         // set the new y position of the rectangle
         this.chartArea.selectBox.attr("transform", "translate( 0 " + pixelMove + ")");
 
         // now move the data in the ranges over the required distance
-        let yMove = this.yScale.invert(d3.event.y) - this.yScale.invert(d3.event.subject.y);
+        let yMove = this.yScale.invert(event.y) - this.yScale.invert(event.subject.y);
 
         // difference between current move and previous move 
         let deltaY = yMove - this.yMoveSave;
@@ -410,7 +406,7 @@ const xySelectMethods = {
         let y = +this.chartArea.selectBox.attr("y");
 
         // get the move in pixels
-        let pixelMove = d3.event.y - d3.event.subject.y;
+        let pixelMove = event.y - event.subject.y;
 
         // and set the rectangle at its new position
         this.chartArea.selectBox.attr("y", y + pixelMove);
@@ -459,7 +455,7 @@ class chartClass {
     constructor(svgId){
 
         // get the svg
-        let svg = d3.select("#" + svgId);
+        let svg = select("#" + svgId);
 
         // check
         if (svg == null) return
@@ -663,12 +659,12 @@ class chartClass {
         else 
             this.chartArea.svg
                 .attr("style","cursor:move")
-                .call(d3.zoom().on("zoom", () => this.zoomXY()));
+                .call(zoom().on("zoom", () => this.zoomXY()));
     }
 
     createxScale(){
         // set the scale for the x-axis
-        this.xScale = d3.scaleLinear()
+        this.xScale = scaleLinear()
             .range([0,this.chartArea.width])
             .domain([this.xRange.min, this.xRange.max]);
 
@@ -687,7 +683,7 @@ class chartClass {
             .attr("transform", `translate( ${margin.left}, ${height + margin.top})`);       
 
         // make the x-axis draw function
-        let draw = d3.axisBottom(this.xScale).tickSize(-height);
+        let draw = axisBottom(this.xScale).tickSize(-height);
 
         // draw the x-axis ticks - no selection or any other action on the ticks !
         xAxis.append("g")
@@ -712,13 +708,13 @@ class chartClass {
             .attr("height",margin.bottom)
             .attr("opacity",0)
             .attr("style","cursor:e-resize")
-            .call(d3.zoom().on("zoom", () => this.zoomXAxis()));
+            .call(zoom().on("zoom", () => this.zoomXAxis()));
     }
 
     createyScale(){
 
         // set the scale for the y-axis
-        this.yScale = d3.scaleLinear()
+        this.yScale = scaleLinear()
             .range([this.chartArea.height, 0])
             .domain([this.yRange.min, this.yRange.max]);
     }
@@ -736,7 +732,7 @@ class chartClass {
             .attr("transform", `translate( ${margin.left}, ${margin.top} )`);
         
         // make the y-axis draw function
-        let draw = d3.axisLeft(this.yScale).tickSize(-width);
+        let draw = axisLeft(this.yScale).tickSize(-width);
 
         // draw the y-axis
         yAxis.append("g")
@@ -760,7 +756,7 @@ class chartClass {
             .attr("width",margin.left).attr("height",height)
             .attr("opacity",0)    
             .attr("style","cursor:n-resize")
-            .call(d3.zoom().on("zoom", () => this.zoomYAxisInAxis()));
+            .call(zoom().on("zoom", () => this.zoomYAxisInAxis()));
     }
 }
 // mixin the drawing methods
@@ -796,11 +792,11 @@ const timeDrawMethods = {
         let chart = this.chartArea.svg.append("g");
 
         // create a line generator - returns a path string  - check if the data fits on the graph first     
-        let line = d3.line()
+        let line$1 = line()
             .defined( d => {if ((d.x > xMax)||(d.x < xMin)) return false; else return true})
             .x ( d => xScale( date.setTime(d.x)) )
             .y ( d => yScale(d.y))
-            .curve(d3.curveLinear);
+            .curve(curveLinear);
 
         // add the line to the chart
         chart.append("path")
@@ -810,7 +806,7 @@ const timeDrawMethods = {
             .attr("stroke-linejoin", "round")
             .attr("stroke-linecap", "round")
             .attr("stroke-width", 1.5)
-            .attr("d", line);
+            .attr("d", line$1);
     },
 
     drawArea(points,color) {
@@ -825,12 +821,12 @@ const timeDrawMethods = {
         let chart = this.svg.append("g").attr("transform", `translate( ${margin.left}, ${margin.top})`);
 
         // create an area generator
-        let area = d3.area()
+        let area$1 = area()
             .defined( d => {if ((d.x > xMax)||(d.x < xMin)) return false; else return true})
             .x ( d => xScale( date.setTime(d.x)) )
             .y0( d => yScale(0))
             .y1( d => yScale(d.y))
-            .curve(d3.curveLinear);
+            .curve(curveLinear);
 
         // add the line to the chart
         chart.append("path")
@@ -840,7 +836,7 @@ const timeDrawMethods = {
             .attr("stroke-linejoin", "round")
             .attr("stroke-linecap", "round")
             .attr("stroke-width", 1.5)
-            .attr("d", area);           
+            .attr("d", area$1);           
     },
 
     drawScatter(points,color) {
@@ -917,7 +913,7 @@ const timeZoomMethods = {
     // the zoom callback
     zoomTimeAxis( ) {
         // the source event
-        let e = d3.event.sourceEvent;
+        let e = event.sourceEvent;
 
         // check the event type
         if (e.type == "wheel") this.scaleTimeAxis(e, this.xRange );
@@ -956,7 +952,7 @@ const timeZoomMethods = {
 
     zoomXY() {
         // the source event
-        let e = d3.event.sourceEvent;
+        let e = event.sourceEvent;
 
         // check the event type
         if (e.type == "wheel") this.scaleYAxis(e, this.yRange );
@@ -1020,13 +1016,13 @@ class timeChartClass extends chartClass{
         else console.log("INVALID TIME TYPE:", type);
 
         // check
-        if ( (d3.timeParse(format)) == null)  console.log("INVALID TIME FORMAT:", format);
+        if ( (timeParse(format)) == null)  console.log("INVALID TIME FORMAT:", format);
         else this.timeFormat = format;
     }
 
     setTimeRange(minStr, maxStr) {
         // get a parsing function
-        let parse = d3.timeParse(this.timeFormat);
+        let parse = timeParse(this.timeFormat);
 
         // get the delta of the current format
         let delta = parse( maxStr ).getTime() - parse( minStr ).getTime();
@@ -1050,39 +1046,39 @@ class timeChartClass extends chartClass{
 
         // I count the hours since you went away - I count the minutes and the seconds too
         // determine the type of scale we will show - day week month year
-        let nrOfDays = d3.timeDay.count(min, max);
+        let nrOfDays = timeDay.count(min, max);
         if (nrOfDays > 1) {
-            if (nrOfDays > 3650) format = "%y", ticks = d3.timeYear.every(5), label = "year";
-            else if (nrOfDays > 730) format = "%Y", ticks = d3.timeYear.every(1), label = "year";
-            else if (nrOfDays > 365) format = "%b'%y", ticks = d3.timeMonth.every(3), label = "month";
-            else if (nrOfDays > 60) format = "%b", ticks = d3.timeMonth.every(1), label = "month";
-            else if (nrOfDays > 10) format = "%a", ticks = d3.timeDay.every(7), label = "day";
-            else if (nrOfDays >  1) format = "%a", ticks = d3.timeDay.every(1), label = "day";
+            if (nrOfDays > 3650) format = "%y", ticks = timeYear.every(5), label = "year";
+            else if (nrOfDays > 730) format = "%Y", ticks = timeYear.every(1), label = "year";
+            else if (nrOfDays > 365) format = "%b'%y", ticks = timeMonth.every(3), label = "month";
+            else if (nrOfDays > 60) format = "%b", ticks = timeMonth.every(1), label = "month";
+            else if (nrOfDays > 10) format = "%a", ticks = timeDay.every(7), label = "day";
+            else if (nrOfDays >  1) format = "%a", ticks = timeDay.every(1), label = "day";
         }
         else {
             // count the nr of hours
-            let nrOfHours = d3.timeHour.count(min, max);
-            if (nrOfHours > 12) format = "%H", ticks = d3.timeHour.every(3), label = "hr";
-            else if (nrOfHours > 2) format = "%H", ticks = d3.timeHour.every(1), label = "hr";
+            let nrOfHours = timeHour.count(min, max);
+            if (nrOfHours > 12) format = "%H", ticks = timeHour.every(3), label = "hr";
+            else if (nrOfHours > 2) format = "%H", ticks = timeHour.every(1), label = "hr";
             // count the minutes
             else {
-                let nrOfMinutes = d3.timeMinute.count(min, max);
-                if (nrOfMinutes > 30) format = "%M", ticks = d3.timeMinute.every(15), label = "min";
-                else if (nrOfMinutes > 15) format = "%M", ticks = d3.timeMinute.every(5), label = "min";
-                else if (nrOfMinutes > 2) format = "%M", ticks = d3.timeMinute.every(1), label = "min";
+                let nrOfMinutes = timeMinute.count(min, max);
+                if (nrOfMinutes > 30) format = "%M", ticks = timeMinute.every(15), label = "min";
+                else if (nrOfMinutes > 15) format = "%M", ticks = timeMinute.every(5), label = "min";
+                else if (nrOfMinutes > 2) format = "%M", ticks = timeMinute.every(1), label = "min";
                 else {
                     // count the seconds
-                    let nrOfSeconds = d3.timeSecond.count(min, max);
-                    if (nrOfSeconds > 60) format = "%S", ticks = d3.timeSecond.every(15), label = "sec";
-                    else if (nrOfSeconds > 30) format = "%S", ticks = d3.timeSecond.every(10), label = "sec";
-                    else if (nrOfSeconds > 15) format = "%S", ticks = d3.timeSecond.every(5), label = "sec";
-                    else if (nrOfSeconds > 1) format = "%S", ticks = d3.timeSecond.every(1), label = "sec";
+                    let nrOfSeconds = timeSecond.count(min, max);
+                    if (nrOfSeconds > 60) format = "%S", ticks = timeSecond.every(15), label = "sec";
+                    else if (nrOfSeconds > 30) format = "%S", ticks = timeSecond.every(10), label = "sec";
+                    else if (nrOfSeconds > 15) format = "%S", ticks = timeSecond.every(5), label = "sec";
+                    else if (nrOfSeconds > 1) format = "%S", ticks = timeSecond.every(1), label = "sec";
                     else {
                         // count the ms
-                        let nrOfms = d3.timeMillisecond.count(min, max);
-                        if (nrOfms > 150) format = "%L", ticks = d3.timeMillisecond.every(100), label = "msec";
-                        else if (nrOfms > 15) format = "%L", ticks = d3.timeMillisecond.every(10), label = "msec";
-                        else format = "%L", ticks = d3.timeMillisecond.every(1), label = "msec";
+                        let nrOfms = timeMillisecond.count(min, max);
+                        if (nrOfms > 150) format = "%L", ticks = timeMillisecond.every(100), label = "msec";
+                        else if (nrOfms > 15) format = "%L", ticks = timeMillisecond.every(10), label = "msec";
+                        else format = "%L", ticks = timeMillisecond.every(1), label = "msec";
                     }
                 }
             }
@@ -1093,7 +1089,7 @@ class timeChartClass extends chartClass{
         this.timeAxis.label = label;
 
         // set the scale for the x-axis
-        this.xScale = d3.scaleTime()
+        this.xScale = scaleTime()
             .range([0,this.chartArea.width])
             .domain([min, max]);
 
@@ -1112,7 +1108,7 @@ class timeChartClass extends chartClass{
             .attr("transform", `translate( ${margin.left}, ${height + margin.top})`);   
 
         // the time axis draw function
-        let drawTimeAxis = d3.axisBottom(this.xScale).ticks( this.timeAxis.ticks ).tickFormat(d3.timeFormat( this.timeAxis.format )).tickSize(-height);
+        let drawTimeAxis = axisBottom(this.xScale).ticks( this.timeAxis.ticks ).tickFormat(timeFormat( this.timeAxis.format )).tickSize(-height);
 
         // draw the x-axis ticks - no selection or any other action on the ticks !
         xAxis.append("g")
@@ -1136,7 +1132,7 @@ class timeChartClass extends chartClass{
             .attr("width",width).attr("height",margin.bottom)
             .attr("opacity",0)
             .attr("style","cursor:e-resize")
-            .call(d3.zoom().on("zoom", () => this.zoomTimeAxis()));
+            .call(zoom().on("zoom", () => this.zoomTimeAxis()));
     }
 
     shiftIntoView( points ) {
@@ -1238,7 +1234,7 @@ class legendClass {
             .attr("font-size",this.layout.fontSize);
  
         // set zooming and translation behaviour of the legend
-        this.svgLegend.call(d3.zoom()
+        this.svgLegend.call(zoom()
             .scaleExtent([1 / 4, 16])
             .on("zoom", this.zoom.bind(this)));
         }
@@ -1246,11 +1242,11 @@ class legendClass {
     // The scale and move  function for the legend
     zoom() {   
        // Get the calculated transform scale
-       let scale = d3.event.transform.k;
+       let scale = event.transform.k;
 
        // get the dx and dy and make new x and y
-       this.position.x = this.position.x + d3.event.sourceEvent.movementX;
-       this.position.y = this.position.y + d3.event.sourceEvent.movementY;
+       this.position.x = this.position.x + event.sourceEvent.movementX;
+       this.position.y = this.position.y + event.sourceEvent.movementY;
 
        // build the transform
        let transform = `translate(${this.position.x} ${this.position.y}) scale( ${scale})`;
@@ -1450,9 +1446,5 @@ const fx = {
     }
 };
 
-exports.chartClass = chartClass;
-exports.fx = fx;
-exports.legendClass = legendClass;
-exports.stats = stats;
-exports.timeChartClass = timeChartClass;
+export { chartClass, fx, legendClass, stats, timeChartClass };
 //# sourceMappingURL=chart.js.map
