@@ -1,6 +1,6 @@
 {
   "name": "sv-chart",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Draw x/y and time/y charts based on d3.js",
   "browser": "chart.js",
   "scripts": {
