@@ -5,8 +5,8 @@ import {timeZoomMethods } from './time-chart-zoom'
 
 // A class for a timechart
 // The x-value for the time chart are the nr of ms in a date object
-// Note that we do not store javascript Date objects for each data point, 
-// but only the number of ms since January 1, 1970, UTC
+// Note that we do not store javascript Date objects for each data point
+//
 // Time format is as described in d3.js "%Y-%m-%dT%H:%M:%S.%LZ"
 // relative time starts at 0, absolute time starts at the current date = Date.now()
 
@@ -26,6 +26,7 @@ export class timeChartClass extends chartClass{
             format: "",
             label: ""
         }
+
         // a default time format
         this.timeFormat = "%H:%M:%S"
 
@@ -47,26 +48,20 @@ export class timeChartClass extends chartClass{
         else this.timeFormat = format
     }
 
-    setTimeRange(minStr, maxStr) {
-        // get a parsing function
+    setTimeRange(minStr, maxStr)
+    {
         let parse = d3.timeParse(this.timeFormat)
-
-        // get the delta of the current format
         let delta = parse( maxStr ).getTime() - parse( minStr ).getTime()
-
-        // the range is different for relative and absolute time
-        this.xRange.min = this.timeType == "relative" ? 0 : Date.now()
-
-        // also change the max setting
+        if (this.timeType == "relative")   this.xRange.min = 0
+        else if (this.timeType == "absolute") this.xRange.min = Date.now() 
         this.xRange.max = this.xRange.min + delta
     }
 
     createxScale(){
-        // convert to date object
+
         let min = new Date(this.xRange.min)
         let max = new Date(this.xRange.max)
 
-        // the locals
         let format = ""
         let ticks = 0
         let label = ""
@@ -124,6 +119,7 @@ export class timeChartClass extends chartClass{
     }
 
     drawxAxis() {
+
         // shorter notation
         const width = this.chartArea.width
         const height = this.chartArea.height
@@ -134,7 +130,6 @@ export class timeChartClass extends chartClass{
             .attr("class", "x-axis")
             .attr("transform", `translate( ${margin.left}, ${height + margin.top})`)   
 
-        // the time axis draw function
         let drawTimeAxis = d3.axisBottom(this.xScale).ticks( this.timeAxis.ticks ).tickFormat(d3.timeFormat( this.timeAxis.format )).tickSize(-height)
 
         // draw the x-axis ticks - no selection or any other action on the ticks !
@@ -165,26 +160,19 @@ export class timeChartClass extends chartClass{
     shiftIntoView( points ) {
 
         let nPoints = points.length
-
-        // we need at least two points
         if (nPoints < 2) return
-
-        // see if we have to use an offset
         let xMax = this.xRange.max
-        let xZero = this.timeType == "relative" ?  points[0].x : 0
+        let xZero = this.timeType == "relative" ? points[0].x : 0
 
-        // if the last point is not visible, but the previous one is - shift time-range by one point
         if ( (xMax < points[nPoints-1].x - xZero) && (xMax >= points[nPoints-2].x - xZero)) {               
             this.xRange.max = points[nPoints-1].x - xZero
             this.xRange.min += this.xRange.max - xMax 
         }
     }
 }
+
 // mixin the drawing methods
 Object.assign(timeChartClass.prototype, timeDrawMethods)
 
 // mixin the zooming methods
 Object.assign(timeChartClass.prototype, timeZoomMethods)
-
-
-
