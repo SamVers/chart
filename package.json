@@ -1,8 +1,8 @@
 {
   "name": "sv-chart",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Draw x/y and time/y charts based on d3.js",
-  "main": "",
+  "main": "chart.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

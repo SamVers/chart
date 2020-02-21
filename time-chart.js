@@ -119,7 +119,6 @@ export class timeChartClass extends chartClass{
     }
 
     drawxAxis() {
-
         // shorter notation
         const width = this.chartArea.width
         const height = this.chartArea.height
