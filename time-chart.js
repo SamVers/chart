@@ -156,16 +156,18 @@ export class timeChartClass extends chartClass{
             .call(d3.zoom().on("zoom", () => this.zoomTimeAxis()))
     }
 
-    shiftIntoView( points ) {
+    shiftIntoView( points = this.dataSeries[0] ) {
 
         let nPoints = points.length
         if (nPoints < 2) return
-        let xMax = this.xRange.max
-        let xZero = this.timeType == "relative" ? points[0].x : 0
+        let r = this.xRange
+        let x0 = this.timeType == "relative" ? points[0].x : 0
 
-        if ( (xMax < points[nPoints-1].x - xZero) && (xMax >= points[nPoints-2].x - xZero)) {               
-            this.xRange.max = points[nPoints-1].x - xZero
-            this.xRange.min += this.xRange.max - xMax 
+        // only shift into view if we are adding points to the end of the visible chart
+        if ( (r.max < points[nPoints-1].x - x0) && (r.max >= points[nPoints-2].x - x0)) {               
+            let delta = r.max - r.min
+            r.max = points[nPoints-1].x - x0
+            r.min = r.max - delta
         }
     }
 }

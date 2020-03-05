@@ -37,8 +37,11 @@ export const stats = {
         // sort the array
         distri.sort( (a, b) => a.x - b.x )
 
+        // get the size
+        let nPoints = distri.length
+
         // change the y values
-        for (let i=0; i< distri.length; i++) distri[i].y = i
+        for (let i=0; i< nPoints; i++) distri[i].y = i/nPoints
 
         return distri
     },

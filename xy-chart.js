@@ -148,29 +148,92 @@ export class chartClass {
     setXRange(min, max) {
         this.xRange.min = min
         this.xRange.max = max
+        return this
     }
 
     setYRange(min, max) {
         this.yRange.min = min
         this.yRange.max = max
+        return this
     }
 
-    setXLabel(label) { this.xLabel = label}
-    setYLabel(label) { this.yLabel = label}
+    adaptXRange(xMin,xMax) {
+        let r = this.xRange
+        if (xMin < r.min) r.min = xMin
+        else if (xMin > r.min*2) r.min = xMin
+        if (xMax > r.max) r.max = xMax
+        else if (xMax < r.max/2) r.max = xMax
+        return this
+    }
+    adaptYRange(yMin,yMax) {
+        let r = this.yRange
+        if (yMin < r.min) r.min = yMin
+        else if (yMin > r.min*2) r.min = yMin
+        if (yMax > r.max) r.max = yMax
+        else if (yMax < r.max/2) r.max = yMax
+        return this
+    }
+
+    xRangeCheck() {
+        let min = this.dataSeries[0][0].x
+        let max = min
+        for (let i = 0; i < this.dataSeries.length; i++) {
+            let n = this.dataSeries[i].length
+            if (min > this.dataSeries[i][0].x) min = this.dataSeries[i][0].x
+            if (max < this.dataSeries[i][n].x) max = this.dataSeries[i][n].x
+        }
+        this.adaptXRange(min, max)
+        return this
+    }
+
+    yRangeCheck() {
+        // only check the y values for which the x is in the range !
+        let min = this.dataSeries[0][0].y
+        let max = min
+        let xr = this.xRange
+        for (let i = 0; i < this.dataSeries.length; i++) {
+            let n = this.dataSeries[i].length
+            for (let j = 0; j < n; j++) {
+                let p = this.dataSeries[i][j]
+                if ((p.x >= xr.min) && (p.x <= xr.max))  {
+                    if (min > p.y) min = p.y
+                    if (max < p.y) max = p.y
+                }
+            }
+        }
+        this.adaptYRange(min, max)
+        return this
+    }
+
+    setXLabel(label) { 
+        this.xLabel = label
+        return this
+    }
+    setYLabel(label) { 
+        this.yLabel = label
+        return this
+    }
 
     addData(name, type, points, color) {
 
         // check if it exists
         for (let i = 0; i < this.dataSeries.length; i++) {
             if (this.dataSeries[i].name == name) {
+                this.dataSeries[i].type = type
                 this.dataSeries[i].points = points
                 this.dataSeries[i].color = color
-                return
+                return this
             }
         }
 
         // not found - add the new series
         this.dataSeries.push({name, type, points, color})
+        return this
+    }
+
+    setData(name, type, points, color) {
+        this.dataSeries[0] = {name,type,points,color}
+        return this
     }
 
     addChartArea() {
