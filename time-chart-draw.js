@@ -14,19 +14,25 @@ export const timeDrawMethods = {
 
     drawLine(points,color) {
 
+        // we need at least two points for the bar chart
+        if (!points.length) return
+
         // notation
         let xScale = this.xScale
         let yScale = this.yScale
-        let xMin = this.xRange.min, xMax = this.xRange.max
         let date = this.date
 
         // define a group for the chart area
         let chart = this.chartArea.svg.append("g")
 
+        let zeroY = yScale(0)
+        let zeroX = this.timeType == "relative" ? points[0].x : 0
+        let xMin = this.xRange.min, xMax = this.xRange.max
+
         // create a line generator - returns a path string  - check if the data fits on the graph first     
         let line = d3.line()
-            .defined( d => {if ((d.x > xMax)||(d.x < xMin)) return false; else return true})
-            .x ( d => xScale( date.setTime(d.x)) )
+            .defined( d => {if ((d.x - zeroX > xMax)||(d.x - zeroX < xMin)) return false; else return true})
+            .x ( d => xScale( date.setTime(d.x - zeroX)) )
             .y ( d => yScale(d.y))
             .curve(d3.curveLinear)
 

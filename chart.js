@@ -40,7 +40,7 @@ const xyDrawMethods = {
             .attr("stroke-width", 1.5)
             .attr("d", line$1);
     },
- 
+
     drawArea(points,color) {
 
         // notation
@@ -102,17 +102,16 @@ const xyDrawMethods = {
             update => update.attr("fill","red")
         );
     },
+    
 
     drawBar(points,color) {
 
         if (points.length < 2) return
         
         // notation
-        //const margin = this.css.margin
         let xScale = this.xScale;
         let yScale = this.yScale;
         let xMin = this.xRange.min, xMax = this.xRange.max;
-        //let yMin = this.yRange.min, yMax = this.yRange.max
 
         // define a group for the chart area
         let chart = this.chartArea.svg.append("g");
@@ -469,7 +468,7 @@ class chartClass {
         this.yLabel = "";
         this.yRange = {min:0,max:1};     // y-range
         this.yScale = null;              // y-axis scale function
-        this.dataSeries = [];            // data objects - each object has a name + color + data points 
+        this.dataSeries = [];            // data objects - each object has a name + type + color + data points 
         this.chartArea = {              // the svg for the chart area (change cursor etc)
             width : 0,
             height : 0,
@@ -603,51 +602,57 @@ class chartClass {
         return this
     }
 
-    adaptXRange(xMin,xMax) {
-        let r = this.xRange;
-        if (xMin < r.min) r.min = xMin;
-        else if (xMin > r.min*2) r.min = xMin;
-        if (xMax > r.max) r.max = xMax;
-        else if (xMax < r.max/2) r.max = xMax;
-        return this
-    }
-    adaptYRange(yMin,yMax) {
-        let r = this.yRange;
-        if (yMin < r.min) r.min = yMin;
-        else if (yMin > r.min*2) r.min = yMin;
-        if (yMax > r.max) r.max = yMax;
-        else if (yMax < r.max/2) r.max = yMax;
-        return this
-    }
+    xRangeAdapt() {
+        // check first
+        if (!this.dataSeries[0] || this.dataSeries[0].points.length == 0) return this
 
-    xRangeCheck() {
-        let min = this.dataSeries[0][0].x;
+        let min = this.dataSeries[0].points[0].x;
         let max = min;
         for (let i = 0; i < this.dataSeries.length; i++) {
-            let n = this.dataSeries[i].length;
-            if (min > this.dataSeries[i][0].x) min = this.dataSeries[i][0].x;
-            if (max < this.dataSeries[i][n].x) max = this.dataSeries[i][n].x;
+            let n = this.dataSeries[i].points.length;
+            if (!n) continue
+            if (min > this.dataSeries[i].points[0].x) min = this.dataSeries[i].points[0].x;
+            if (max < this.dataSeries[i].points[n-1].x) max = this.dataSeries[i].points[n-1].x;
         }
-        this.adaptXRange(min, max);
+        this.xRange.min = min;
+        this.xRange.max = max;
         return this
     }
 
-    yRangeCheck() {
-        // only check the y values for which the x is in the range !
-        let min = this.dataSeries[0][0].y;
+    yRangeAdapt(factor = 1.0) {
+        // check first
+        if (!this.dataSeries[0] || this.dataSeries[0].points.length == 0) return this
+
+        // initialise min and max
+        let min = this.dataSeries[0].points[0].y;
         let max = min;
         let xr = this.xRange;
+
+        // check all dataseries
         for (let i = 0; i < this.dataSeries.length; i++) {
-            let n = this.dataSeries[i].length;
+            let n = this.dataSeries[i].points.length;
+
+            // check each point in a dataserie
             for (let j = 0; j < n; j++) {
-                let p = this.dataSeries[i][j];
+                let p = this.dataSeries[i].points[j];
+
+                // only check the y values for which the x is in the range !
                 if ((p.x >= xr.min) && (p.x <= xr.max))  {
-                    if (min > p.y) min = p.y;
-                    if (max < p.y) max = p.y;
+
+                    // check for min/max
+                    if (p.y < min ) min = p.y;
+                    else if (p.y > max ) max = p.y;
                 }
             }
         }
-        this.adaptYRange(min, max);
+        // make sure we see 0
+        if (min > 0) min = 0;
+        else if (max < 0) max = 0;
+
+        let  yr= this.yRange;
+        if (min*factor < yr.min) yr.min = min*factor;
+        if (max*factor > yr.max || max < yr.max*factor) yr.max = max*factor;
+
         return this
     }
 
@@ -845,19 +850,25 @@ const timeDrawMethods = {
 
     drawLine(points,color) {
 
+        // we need at least two points for the bar chart
+        if (!points.length) return
+
         // notation
         let xScale = this.xScale;
         let yScale = this.yScale;
-        let xMin = this.xRange.min, xMax = this.xRange.max;
         let date = this.date;
 
         // define a group for the chart area
         let chart = this.chartArea.svg.append("g");
 
+        let zeroY = yScale(0);
+        let zeroX = this.timeType == "relative" ? points[0].x : 0;
+        let xMin = this.xRange.min, xMax = this.xRange.max;
+
         // create a line generator - returns a path string  - check if the data fits on the graph first     
         let line$1 = line()
-            .defined( d => {if ((d.x > xMax)||(d.x < xMin)) return false; else return true})
-            .x ( d => xScale( date.setTime(d.x)) )
+            .defined( d => {if ((d.x - zeroX > xMax)||(d.x - zeroX < xMin)) return false; else return true})
+            .x ( d => xScale( date.setTime(d.x - zeroX)) )
             .y ( d => yScale(d.y))
             .curve(curveLinear);
 
@@ -1082,15 +1093,57 @@ class timeChartClass extends chartClass{
         // check
         if ( (timeParse(format)) == null)  console.log("INVALID TIME FORMAT:", format);
         else this.timeFormat = format;
+
+        return this
     }
 
     setTimeRange(minStr, maxStr)
     {
         let parse = timeParse(this.timeFormat);
         let delta = parse( maxStr ).getTime() - parse( minStr ).getTime();
-        if (this.timeType == "relative")   this.xRange.min = 0;
-        else if (this.timeType == "absolute") this.xRange.min = Date.now(); 
+
+        if (this.timeType == "relative")   
+            this.xRange.min = 0;
+        else if (this.timeType == "absolute") 
+            this.xRange.min = Date.now(); 
+
         this.xRange.max = this.xRange.min + delta;
+
+        return this
+    }
+
+    yRangeAdapt(factor) {
+        // check first
+        if (!this.dataSeries[0] || this.dataSeries[0].points.length == 0) return this
+
+        let min = this.dataSeries[0].points[0].y;
+        let max = min, x0=0,x1=0;
+        let xr = this.xRange;
+
+        x0 = this.timeType == "relative" ? this.dataSeries[0].points[0].x + xr.min : xr.min;
+        x1 = this.timeType == "relative" ? this.dataSeries[0].points[0].x + xr.max : xr.max;
+
+        for (let i = 0; i < this.dataSeries.length; i++) {
+            let n = this.dataSeries[i].points.length;
+            for (let j = 0; j < n; j++) {
+                let p = this.dataSeries[i].points[j];
+
+                // only check the y values for which the x is in the range !
+                if ((p.x >= x0) && (p.x <= x1))  {
+                    if (p.y < min ) min = p.y;
+                    if (p.y > max ) max = p.y;
+                }
+            }
+        }
+        // make sure we see 0
+        if (min > 0) min = 0;
+        else if (max < 0) max = 0;
+
+        let  yr= this.yRange;
+        if (min*factor < yr.min) yr.min = min*factor;
+        if (max*factor > yr.max || max < yr.max*factor) yr.max = max*factor;
+
+        return this
     }
 
     createxScale(){
@@ -1192,10 +1245,10 @@ class timeChartClass extends chartClass{
             .call(zoom().on("zoom", () => this.zoomTimeAxis()));
     }
 
-    shiftIntoView( points = this.dataSeries[0] ) {
+    shiftIntoView( points = this.dataSeries[0].points ) {
 
         let nPoints = points.length;
-        if (nPoints < 2) return
+        if (nPoints < 2) return this
         let r = this.xRange;
         let x0 = this.timeType == "relative" ? points[0].x : 0;
 
@@ -1205,6 +1258,8 @@ class timeChartClass extends chartClass{
             r.max = points[nPoints-1].x - x0;
             r.min = r.max - delta;
         }
+
+        return this
     }
 }
 

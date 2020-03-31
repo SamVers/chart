@@ -40,7 +40,7 @@ export const xyDrawMethods = {
             .attr("stroke-width", 1.5)
             .attr("d", line)
     },
- 
+
     drawArea(points,color) {
 
         // notation
@@ -102,17 +102,16 @@ export const xyDrawMethods = {
             update => update.attr("fill","red")
         )
     },
+    
 
     drawBar(points,color) {
 
         if (points.length < 2) return
         
         // notation
-        //const margin = this.css.margin
         let xScale = this.xScale
         let yScale = this.yScale
         let xMin = this.xRange.min, xMax = this.xRange.max
-        //let yMin = this.yRange.min, yMax = this.yRange.max
 
         // define a group for the chart area
         let chart = this.chartArea.svg.append("g")

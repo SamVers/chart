@@ -46,15 +46,57 @@ export class timeChartClass extends chartClass{
         // check
         if ( (d3.timeParse(format)) == null)  console.log("INVALID TIME FORMAT:", format)
         else this.timeFormat = format
+
+        return this
     }
 
     setTimeRange(minStr, maxStr)
     {
         let parse = d3.timeParse(this.timeFormat)
         let delta = parse( maxStr ).getTime() - parse( minStr ).getTime()
-        if (this.timeType == "relative")   this.xRange.min = 0
-        else if (this.timeType == "absolute") this.xRange.min = Date.now() 
+
+        if (this.timeType == "relative")   
+            this.xRange.min = 0
+        else if (this.timeType == "absolute") 
+            this.xRange.min = Date.now() 
+
         this.xRange.max = this.xRange.min + delta
+
+        return this
+    }
+
+    yRangeAdapt(factor) {
+        // check first
+        if (!this.dataSeries[0] || this.dataSeries[0].points.length == 0) return this
+
+        let min = this.dataSeries[0].points[0].y
+        let max = min, x0=0,x1=0
+        let xr = this.xRange
+
+        x0 = this.timeType == "relative" ? this.dataSeries[0].points[0].x + xr.min : xr.min
+        x1 = this.timeType == "relative" ? this.dataSeries[0].points[0].x + xr.max : xr.max
+
+        for (let i = 0; i < this.dataSeries.length; i++) {
+            let n = this.dataSeries[i].points.length
+            for (let j = 0; j < n; j++) {
+                let p = this.dataSeries[i].points[j]
+
+                // only check the y values for which the x is in the range !
+                if ((p.x >= x0) && (p.x <= x1))  {
+                    if (p.y < min ) min = p.y
+                    if (p.y > max ) max = p.y
+                }
+            }
+        }
+        // make sure we see 0
+        if (min > 0) min = 0
+        else if (max < 0) max = 0
+
+        let  yr= this.yRange
+        if (min*factor < yr.min) yr.min = min*factor
+        if (max*factor > yr.max || max < yr.max*factor) yr.max = max*factor
+
+        return this
     }
 
     createxScale(){
@@ -156,10 +198,10 @@ export class timeChartClass extends chartClass{
             .call(d3.zoom().on("zoom", () => this.zoomTimeAxis()))
     }
 
-    shiftIntoView( points = this.dataSeries[0] ) {
+    shiftIntoView( points = this.dataSeries[0].points ) {
 
         let nPoints = points.length
-        if (nPoints < 2) return
+        if (nPoints < 2) return this
         let r = this.xRange
         let x0 = this.timeType == "relative" ? points[0].x : 0
 
@@ -169,6 +211,8 @@ export class timeChartClass extends chartClass{
             r.max = points[nPoints-1].x - x0
             r.min = r.max - delta
         }
+
+        return this
     }
 }
 
